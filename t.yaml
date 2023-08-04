@@ -1,0 +1,167 @@
+action: &action
+  id: string
+  properties:
+    actionType: string
+    text: string
+  anyOf:
+    - sendMessage
+    - sendPhoto
+    - sendSticker
+    - sendVideo
+    - sendVoice
+
+# if action.actionType == 'sendMessage':
+#     bot.send_message(message.chat.id, action.text, reply_markup=action.reply_markup)
+# elif action.actionType == 'sendPhoto':
+#     bot.send_photo(message.chat.id, action.text)
+# elif action.actionType == 'sendSticker':
+#     bot.send_sticker(message.chat.id, action.text)
+# elif action.actionType == 'sendVideo':
+#     bot.send_video(message.chat.id, action.text)
+# elif action.actionType == 'sendVoice':
+#     bot.send_voice(message.chat.id, action.text)
+
+#exec(action.func)
+
+webApp: &webApp
+  id: string
+  url: string
+
+inlineKeyboard: &inlineKeyboard
+  id: string
+  text: string
+  action: *action
+  webApp:
+    anyOf:
+      - *webApp
+      - None
+
+commonKeyboard: &commonKeyboard
+  id: string
+  text: string
+  webApp:
+    anyOf:
+      - *webApp
+      - None
+
+keyboard: &keyboard
+  anyOf:
+    - *inlineKeyboard
+    - *commonKeyboard
+
+message: &message
+  id: string
+  text: string
+  keyboard:
+    type:
+      anyOf:
+        - inline
+        - common
+        - remove
+    properties: *keyboard
+
+sendMessage:
+  message: *message
+
+command:
+  id: string
+  text: string
+  actions: *action
+
+trigger:
+  id: string
+  actions: *action
+  anyOf:
+    - text
+
+config:
+  commands:
+    command1:
+      type: command
+      properties:
+        text: '/start'
+        actions:
+          action1:
+            type: action
+            properties:
+              actionType: sendMessage
+              text: 'Hello dear!'
+              keyboard:
+                type: keyboard
+                properties:
+                  keyboardType: inline
+                  text: "Button"
+                  actions:
+                    action1:
+                      type: action
+                      properties:
+                        actionType: sendMessage
+                        text: "Hello again, гнойный пидор!"
+                        keyboard:
+                          type: keyboard
+                          properties:
+                            keyboardType: common
+                            properties:
+                              text: "Hello!"
+
+  triggers:
+    trigger1:
+      type: trigger
+      properties:
+        text: "Hello!"
+        actions:
+          action1:
+            type: action
+            properties:
+              actionType: sendMessage
+              text: "message 1"
+          action2:
+            type: action
+            properties:
+              actionType: sendMessage
+              text: "message 2"
+
+    trigger2:
+      type: trigger
+      properties:
+        text: "Hello!"
+        actions:
+          action1:
+            type: action
+            properties:
+              actionType: sendMessage
+              text: "message 3"
+          action2:
+            type: action
+            properties:
+              actionType: sendMessage
+              text: "message 3"
+
+
+BotConfig:
+  events:
+    event1:
+      type: event
+      properties:
+        eventType: DBevent
+        triggers:
+          trigger1:
+            type: DBtrigger
+            properties:
+              model: BotUser
+              field: fist_name
+              operation: delete
+        actions:
+          action1:
+            type: action
+            properties:
+              func: >
+                bot.send_message(instance.telegram_id, "Мяу")
+          action2:
+            type: action
+            properties:
+              actionType: sendMessage
+              text: "текст"
+              replyMarkup:
+                type: InlineKeyboard
+                callback: "callback"
